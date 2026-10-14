@@ -127,6 +127,10 @@ dialog::backdrop { background: rgba(5, 35, 103, .55); }
 .item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
 .item:first-child { border-top: 0; }
 .item.zero .name { color: var(--muted); text-decoration: line-through; }
+/* Menys d'1 unitat: vora i etiqueta groga, i la xifra en groc */
+.item.partial { box-shadow: inset 4px 0 0 var(--warn); }
+.item.partial .qty output { color: var(--warn); }
+.half { display: block; margin-top: 2px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--warn); }
 .thumb {
   width: 56px; height: 56px; flex: none; border-radius: var(--radius); border: 1.5px dashed var(--line);
   background: var(--soft) center / cover no-repeat; color: var(--muted); cursor: pointer; padding: 0;
@@ -146,7 +150,7 @@ dialog::backdrop { background: rgba(5, 35, 103, .55); }
 
 /* Llista massiva */
 #bulk { width: 100%; margin-top: 12px; resize: vertical; line-height: 1.5; }
-code { font: 600 12px/1 ui-monospace, monospace; background: var(--soft); padding: 2px 5px; border-radius: 2px; color: var(--ink); }
+code { white-space: nowrap; font: 600 12px/1 ui-monospace, monospace; background: var(--soft); padding: 2px 5px; border-radius: 2px; color: var(--ink); }
 .result { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; }
 .result li { padding: 4px 0; }
 .result b { color: var(--strong); }

@@ -33,6 +33,14 @@ const byName = (name) => state.items.find((i) => norm(i.name) === norm(name));
 const toNum = (v) => Number(String(v).trim().replace(",", ".")) || 0;
 const clampQty = (n) => Math.max(0, Math.round(toNum(n) * 100) / 100);
 const fmt = (n) => n.toLocaleString("ca-ES", { maximumFractionDigits: 2 });
+// Per mostrar: mitges i quarts com a fracció (0,5 → ½, 1,5 → 1½), la resta amb coma
+const FRACTIONS = { 0.25: "¼", 0.5: "½", 0.75: "¾" };
+function fmtQty(n) {
+  const whole = Math.floor(n);
+  const frac = FRACTIONS[Math.round((n - whole) * 100) / 100];
+  return frac ? (whole ? whole : "") + frac : fmt(n);
+}
+const isPartial = (n) => n > 0 && n < 1;
 
 function addOrUpdate(name, delta) {
   const found = byName(name);
@@ -55,13 +63,13 @@ function render() {
 
   $("list").innerHTML = items.length
     ? items.map((i) => `
-      <li class="item${i.qty === 0 ? " zero" : ""}" data-id="${i.id}">
+      <li class="item${i.qty === 0 ? " zero" : ""}${isPartial(i.qty) ? " partial" : ""}" data-id="${i.id}">
         <button class="thumb${i.photo ? " has" : ""}" data-act="photo" aria-label="Foto de ${esc(i.name)}"
           ${i.photo ? `style="background-image:url(${i.photo})"` : ""}>${i.photo ? "" : "+"}</button>
-        <button class="name" data-act="edit">${esc(i.name)}</button>
+        <button class="name" data-act="edit">${esc(i.name)}${isPartial(i.qty) ? `<span class="half">Menys d'1 unitat</span>` : ""}</button>
         <div class="qty">
           <button data-act="minus" aria-label="Treure un">−</button>
-          <output>${fmt(i.qty)}</output>
+          <output>${fmtQty(i.qty)}</output>
           <button data-act="plus" aria-label="Afegir un">+</button>
         </div>
       </li>`).join("")
@@ -69,7 +77,8 @@ function render() {
 
   const total = state.items.reduce((s, i) => s + i.qty, 0);
   const out = state.items.filter((i) => i.qty === 0).length;
-  $("global").innerHTML = `<strong>${state.items.length}</strong>productes · ${fmt(total)} unitats${out ? ` · ${out} esgotats` : ""}`;
+  const low = state.items.filter((i) => isPartial(i.qty)).length;
+  $("global").innerHTML = `<strong>${state.items.length}</strong>productes · ${fmt(total)} unitats${low ? ` · ${low} a mitges` : ""}${out ? ` · ${out} esgotats` : ""}`;
 }
 
 // ── Fotos: es redueixen a miniatura JPEG perquè hi càpiguen moltes al navegador
@@ -131,7 +140,7 @@ $("quick").addEventListener("submit", (e) => {
   $("quick-qty").value = 1;
   $("search").value = "";
   save();
-  if (r.kind !== "new") msg(`"${r.item.name}" ja hi era: ara n'hi ha ${fmt(r.item.qty)}.`);
+  if (r.kind !== "new") msg(`"${r.item.name}" ja hi era: ara n'hi ha ${fmtQty(r.item.qty)}.`);
 });
 
 // ── Diàleg d'edició
@@ -180,7 +189,11 @@ const WITH_U = new RegExp(`^(.+?)\\s*(${NUM})\\s*(?:u|uds?|unitats?)\\.?$`, "i")
 const NUM_END = new RegExp(`^(.+?)\\s+(${NUM})$`);
 const NUM_START = new RegExp(`^(${NUM})\\s*(?:u|uds?|unitats?)?\\s+(.+)$`, "i");
 function parseLine(line) {
-  const t = line.replace(/^[\s\-–•*·]+(?=\D)/, "").trim(); // treu vinyetes, però no el "-" d'un número
+  const t = line
+    .replace(/\([^)]*\)?/g, " ") // el que va entre parèntesis s'ignora
+    .replace(/^[\s\-–•*·]+(?=\D)/, "") // treu vinyetes, però no el "-" d'un número
+    .replace(/\s+/g, " ")
+    .trim();
   if (!t) return null;
   let m = t.match(WITH_U) || t.match(NUM_END);
   if (m && m[1].trim()) return { name: m[1].replace(/[:\s]+$/, ""), delta: toNum(m[2]) };
@@ -195,9 +208,9 @@ $("bulk-apply").addEventListener("click", () => {
     const p = parseLine(line);
     if (!p) continue;
     const r = addOrUpdate(p.name, p.delta);
-    const sign = p.delta >= 0 ? `+${fmt(p.delta)}` : fmt(p.delta);
+    const sign = p.delta >= 0 ? `+${fmtQty(p.delta)}` : `-${fmtQty(-p.delta)}`;
     const label = { new: "Nou", up: "Sumat", down: "Restat" }[r.kind];
-    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${fmt(r.before)} → `}${fmt(r.item.qty)} u</li>`);
+    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${fmtQty(r.before)} → `}${fmtQty(r.item.qty)} u</li>`);
   }
   if (!out.length) {
     $("bulk-result").innerHTML = `<li><span class="tag err">Buit</span>Escriu un producte per línia.</li>`;
