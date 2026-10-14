@@ -1,0 +1,164 @@
+/* Identitat Can Colls: blau marí sobre blanc trencat, vermell per a l'èmfasi, Montserrat per a tot el text.
+   Capçalera en bloc blau a tota amplada + cinta de text, com als manuals de marca. */
+/* Un sol tema: fons blau marí per a tothom, sigui quin sigui el mode clar/fosc del dispositiu. */
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  --marine: #0d469a;   /* MarineBlue */
+  --naval: #052367;    /* NavalAir */
+  --red: #9a1701;      /* RedRock */
+  --graphite: #2b2b2d; /* Idunnow */
+  --notpink: #f0eaef;  /* NotPink */
+
+  --bg: #04173f;
+  --surface: #0a2656;
+  --ink: #e9e3ec;
+  --strong: #ffffff;
+  --muted: #9fb0d4;
+  --line: #1f3d75;
+  --soft: #11306a;
+  --band: var(--marine);
+  --band-ink: var(--notpink);
+  --ok: #57c587;
+  --warn: #e5ad45;
+  --bad: #ef6a52;
+  --accent: #ef6a52;
+  --radius: 4px;
+
+  --font: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 500 15px/1.5 var(--font);
+}
+h1, h2, h3 { font-family: var(--font); margin: 0; text-wrap: balance; }
+h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+h2 { font-size: 22px; font-weight: 700; font-style: italic; margin-bottom: 14px; color: var(--strong); }
+h3 { font-size: 18px; font-weight: 700; }
+.sub, .hint { color: var(--muted); margin: 6px 0 0; font-size: 13px; font-weight: 500; }
+
+/* Capçalera: bloc blau a tota amplada */
+.top, main { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+.top {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+  padding-top: 36px; padding-bottom: 28px;
+  background: var(--band); color: var(--band-ink);
+  box-shadow: 0 0 0 100vmax var(--band); clip-path: inset(0 -100vmax);
+}
+.brand { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.logo { width: 88px; height: 88px; flex: none; border-radius: 50%; box-shadow: 0 0 0 3px var(--notpink); }
+.top h1 { color: var(--band-ink); text-transform: uppercase; }
+.top .sub { color: var(--band-ink); opacity: .8; }
+.social { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; font-size: 13px; font-weight: 600; color: var(--band-ink); }
+.social .ig { flex: none; }
+.social .support { font-size: 11px; font-weight: 500; opacity: .75; }
+.social a { color: var(--band-ink); text-decoration: none; border-bottom: 1px solid transparent; }
+.social a:hover, .social a:focus-visible { border-bottom-color: var(--band-ink); outline: none; }
+.global { font-size: 13px; color: var(--band-ink); opacity: .9; text-align: right; }
+.global strong { color: var(--band-ink); font-size: 30px; font-weight: 800; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+/* Cinta de text sota la capçalera */
+.ticker {
+  overflow: hidden; white-space: nowrap; background: var(--notpink); color: var(--marine);
+  border-block: 2px solid var(--marine);
+  font: 800 15px/1 var(--font); text-transform: uppercase; letter-spacing: .02em;
+}
+.ticker span { display: inline-block; padding: 9px 0; animation: ticker 160s linear infinite; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .ticker span { animation: none; } }
+
+section { margin: 36px 0; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.section-head h2 { margin: 0; }
+
+/* Botons */
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn {
+  font: inherit; font-size: 14px; font-weight: 700; padding: 9px 16px; border-radius: var(--radius);
+  border: 2px solid var(--marine); background: var(--marine); color: var(--notpink); cursor: pointer;
+}
+.btn:hover { background: var(--naval); border-color: var(--naval); }
+.btn.danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover { background: var(--bad); color: var(--notpink); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--ink); }
+.icon { border: 0; background: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+.link { border: 0; background: none; color: var(--ink); cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; }
+
+/* Diàleg */
+dialog { border: 0; border-radius: var(--radius); padding: 0; background: var(--surface); color: var(--ink); width: min(460px, calc(100vw - 32px)); box-shadow: 0 0 0 2px var(--marine); }
+dialog::backdrop { background: rgba(5, 35, 103, .55); }
+.dlg { padding: 0 18px 18px; }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; margin: 0 -18px 14px; padding: 14px 18px; background: var(--band); }
+.dlg-head h3 { color: var(--band-ink); }
+.dlg-head .icon { color: var(--band-ink); }
+.proj { border: 1.5px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+.proj-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.proj-head b { color: var(--strong); }
+.proj-head .h { margin-left: auto; color: var(--muted); font-size: 13px; }
+.ctrl { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 14px; }
+.step { display: flex; align-items: center; gap: 6px; }
+.step button { width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--soft); color: var(--ink); font-size: 16px; font-weight: 700; cursor: pointer; }
+.step .btn.ghost { width: auto; height: 32px; padding: 0 12px; font-size: 13px; }
+.step output { min-width: 28px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.edit { margin-top: 8px; font-size: 14px; }
+.edit summary { cursor: pointer; color: var(--muted); font-weight: 600; }
+.edit-grid { display: grid; grid-template-columns: 1fr 70px; gap: 6px 10px; align-items: center; margin-top: 10px; }
+.edit-grid input { font: inherit; padding: 6px 8px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+
+#backup { width: 100%; margin-top: 12px; font: 12px/1.4 ui-monospace, monospace; padding: 8px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); resize: vertical; }
+.btn:focus-visible, .link:focus-visible, .qty button:focus-visible, .thumb:focus-visible, .name:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Cercador */
+.search, .quick input, .field input, #bulk {
+  font: inherit; font-size: 15px; padding: 9px 12px; border-radius: var(--radius);
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.search { width: min(240px, 100%); }
+.search:focus, .quick input:focus, .field input:focus, #bulk:focus { outline: none; border-color: var(--notpink); }
+
+/* Llista de productes */
+.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.item:first-child { border-top: 0; }
+.item.zero .name { color: var(--muted); text-decoration: line-through; }
+.thumb {
+  width: 56px; height: 56px; flex: none; border-radius: var(--radius); border: 1.5px dashed var(--line);
+  background: var(--soft) center / cover no-repeat; color: var(--muted); cursor: pointer; padding: 0;
+  display: grid; place-items: center; font: 700 22px/1 var(--font);
+}
+.thumb.has { border-style: solid; }
+.name { flex: 1; min-width: 0; border: 0; background: none; color: var(--strong); font: 700 16px/1.3 var(--font); text-align: left; cursor: pointer; padding: 4px 0; overflow-wrap: anywhere; }
+.qty { display: flex; align-items: center; gap: 6px; flex: none; }
+.qty button { width: 34px; height: 34px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--soft); color: var(--ink); font-size: 18px; font-weight: 700; cursor: pointer; }
+.qty output { min-width: 32px; text-align: center; font-size: 20px; font-weight: 800; color: var(--strong); font-variant-numeric: tabular-nums; }
+.empty-msg { color: var(--muted); font-size: 14px; padding: 16px; }
+
+/* Afegir ràpid */
+.quick { display: flex; gap: 8px; margin-top: 12px; }
+.quick #quick-name { flex: 1; min-width: 0; }
+.quick #quick-qty { width: 72px; }
+
+/* Llista massiva */
+#bulk { width: 100%; margin-top: 12px; resize: vertical; line-height: 1.5; }
+code { font: 600 12px/1 ui-monospace, monospace; background: var(--soft); padding: 2px 5px; border-radius: 2px; color: var(--ink); }
+.result { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; }
+.result li { padding: 4px 0; }
+.result b { color: var(--strong); }
+.tag { display: inline-block; min-width: 74px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.tag.new { color: var(--warn); } .tag.up { color: var(--ok); } .tag.down { color: var(--bad); } .tag.err { color: var(--muted); }
+
+/* Diàleg d'edició */
+.field { display: grid; gap: 4px; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--muted); }
+
+@media (max-width: 560px) {
+  h1 { font-size: 26px; }
+  .brand { gap: 12px; }
+  .logo { width: 64px; height: 64px; }
+  .global { text-align: left; }
+  .thumb { width: 48px; height: 48px; }
+  .search { width: 100%; }
+}

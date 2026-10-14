@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>El meu rebost</title>
+  <meta name="description" content="Llista de tots els productes que tinc a casa, amb foto i quantitat.">
+  <meta name="theme-color" content="#0d469a">
+  <link rel="icon" href="logo.webp" type="image/webp">
+  <link rel="apple-touch-icon" href="logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="logo.webp" alt="Can Colls" width="88" height="88">
+      <div>
+        <h1>El meu rebost</h1>
+        <p class="sub">Tot el que tinc a casa · foto, nom i quantitat</p>
+        <p class="social"><span class="support">Recolza el projecte a</span><svg class="ig" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg><a href="https://www.instagram.com/collsblanco/" target="_blank" rel="noopener">@collsblanco</a> <span aria-hidden="true">·</span> <a href="https://www.instagram.com/cancollsdissenys/" target="_blank" rel="noopener">@cancollsdissenys</a></p>
+      </div>
+    </div>
+    <div class="global" id="global"></div>
+  </header>
+  <div class="ticker" aria-hidden="true"><span>CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** CAN COLLS ***** El meu rebost ***** Què tinc a casa ***** </span></div>
+
+  <main>
+    <section>
+      <div class="section-head">
+        <h2>Productes</h2>
+        <input id="search" class="search" type="search" placeholder="Buscar…" aria-label="Buscar producte">
+      </div>
+      <ul class="list" id="list"></ul>
+      <form class="quick" id="quick">
+        <input id="quick-name" placeholder="Nou producte" aria-label="Nom del producte" autocomplete="off" required>
+        <input id="quick-qty" type="number" inputmode="numeric" min="0" value="1" aria-label="Quantitat">
+        <button class="btn">Afegir</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Afegir una llista</h2>
+      <p class="hint">Un producte per línia. Si ja hi és, se suma (o es resta amb un "-"); si no hi és, s'afegeix.<br>Exemples: <code>3 llet</code> · <code>ous 12</code> · <code>-2 iogurts</code> · <code>pa</code> (= 1)</p>
+      <textarea id="bulk" rows="6" placeholder="2 llet&#10;ous 6&#10;-1 tomàquets&#10;pa"></textarea>
+      <div class="row">
+        <button id="bulk-apply" class="btn">Aplicar llista</button>
+      </div>
+      <ul class="result" id="bulk-result" role="status"></ul>
+    </section>
+
+    <section class="tools">
+      <h2>Dades</h2>
+      <p class="hint">Tot es guarda només en aquest navegador (fotos incloses). Per fer còpia o passar-ho a un altre dispositiu: copia el text i enganxa'l allà.</p>
+      <textarea id="backup" rows="3" placeholder="Aquí apareix la còpia, o enganxa-hi una per restaurar-la"></textarea>
+      <div class="row">
+        <button id="export" class="btn">Copiar còpia</button>
+        <button id="import" class="btn">Restaurar còpia</button>
+        <button id="reset" class="btn danger">Esborrar-ho tot</button>
+      </div>
+      <p class="hint" id="msg" role="status"></p>
+    </section>
+  </main>
+
+  <dialog id="edit">
+    <form method="dialog" class="dlg" id="edit-form">
+      <div class="dlg-head">
+        <h3>Editar producte</h3>
+        <button class="icon" value="close" aria-label="Tancar">✕</button>
+      </div>
+      <label class="field">Nom<input id="edit-name" required></label>
+      <label class="field">Quantitat<input id="edit-qty" type="number" inputmode="numeric" min="0"></label>
+      <div class="row">
+        <button type="button" class="btn ghost" id="edit-photo">Canviar foto</button>
+        <button type="button" class="btn ghost" id="edit-nophoto">Treure foto</button>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="edit-save">Desar</button>
+        <button type="button" class="btn danger" id="edit-delete">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="file" accept="image/*" hidden>
+  <script src="app.js"></script>
+</body>
+</html>
