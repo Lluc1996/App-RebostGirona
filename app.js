@@ -29,7 +29,10 @@ const norm = (t) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().rep
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const byId = (id) => state.items.find((i) => i.id === id);
 const byName = (name) => state.items.find((i) => norm(i.name) === norm(name));
-const clampQty = (n) => Math.max(0, Math.round(Number(n) || 0));
+// Quantitats amb decimals ("0,5" o "0.5"), arrodonides a centèsimes i mai negatives
+const toNum = (v) => Number(String(v).trim().replace(",", ".")) || 0;
+const clampQty = (n) => Math.max(0, Math.round(toNum(n) * 100) / 100);
+const fmt = (n) => n.toLocaleString("ca-ES", { maximumFractionDigits: 2 });
 
 function addOrUpdate(name, delta) {
   const found = byName(name);
@@ -58,7 +61,7 @@ function render() {
         <button class="name" data-act="edit">${esc(i.name)}</button>
         <div class="qty">
           <button data-act="minus" aria-label="Treure un">−</button>
-          <output>${i.qty}</output>
+          <output>${fmt(i.qty)}</output>
           <button data-act="plus" aria-label="Afegir un">+</button>
         </div>
       </li>`).join("")
@@ -66,7 +69,7 @@ function render() {
 
   const total = state.items.reduce((s, i) => s + i.qty, 0);
   const out = state.items.filter((i) => i.qty === 0).length;
-  $("global").innerHTML = `<strong>${state.items.length}</strong>productes · ${total} unitats${out ? ` · ${out} esgotats` : ""}`;
+  $("global").innerHTML = `<strong>${state.items.length}</strong>productes · ${fmt(total)} unitats${out ? ` · ${out} esgotats` : ""}`;
 }
 
 // ── Fotos: es redueixen a miniatura JPEG perquè hi càpiguen moltes al navegador
@@ -128,14 +131,14 @@ $("quick").addEventListener("submit", (e) => {
   $("quick-qty").value = 1;
   $("search").value = "";
   save();
-  if (r.kind !== "new") msg(`"${r.item.name}" ja hi era: ara n'hi ha ${r.item.qty}.`);
+  if (r.kind !== "new") msg(`"${r.item.name}" ja hi era: ara n'hi ha ${fmt(r.item.qty)}.`);
 });
 
 // ── Diàleg d'edició
 function openEdit(item) {
   editingId = item.id;
   $("edit-name").value = item.name;
-  $("edit-qty").value = item.qty;
+  $("edit-qty").value = fmt(item.qty);
   $("edit-nophoto").hidden = !item.photo;
   $("edit").showModal();
 }
@@ -170,14 +173,19 @@ $("edit-delete").addEventListener("click", () => {
   save();
 });
 
-// ── Llista massiva: "Llet 3u", "iogurts -2u" (també "llet 3", "3 llet", "pa" = 1)
+// ── Llista massiva: "(nom del producte) (unitats)u" → "pasta llaços 1u", "llet 0,5u", "iogurts -2u"
+// Si falta la "u" també s'entén ("llet 3", "3 llet"), i sense número compta com 1 ("pa").
+const NUM = "[+-]?\\d+(?:[.,]\\d+)?";
+const WITH_U = new RegExp(`^(.+?)\\s*(${NUM})\\s*(?:u|uds?|unitats?)\\.?$`, "i");
+const NUM_END = new RegExp(`^(.+?)\\s+(${NUM})$`);
+const NUM_START = new RegExp(`^(${NUM})\\s*(?:u|uds?|unitats?)?\\s+(.+)$`, "i");
 function parseLine(line) {
   const t = line.replace(/^[\s\-–•*·]+(?=\D)/, "").trim(); // treu vinyetes, però no el "-" d'un número
   if (!t) return null;
-  let m = t.match(/^([+-]?\d+)\s*[x×]?\s+(.+)$/i);
-  if (m) return { name: m[2], delta: Number(m[1]) };
-  m = t.match(/^(.+?)\s*[:x×]?\s*([+-]?\d+)\s*(?:u|uds?|unitats?)?\.?$/i);
-  if (m && m[1].trim()) return { name: m[1].replace(/[:\s]+$/, ""), delta: Number(m[2]) };
+  let m = t.match(WITH_U) || t.match(NUM_END);
+  if (m && m[1].trim()) return { name: m[1].replace(/[:\s]+$/, ""), delta: toNum(m[2]) };
+  m = t.match(NUM_START);
+  if (m) return { name: m[2], delta: toNum(m[1]) };
   return { name: t, delta: 1 };
 }
 $("bulk-apply").addEventListener("click", () => {
@@ -187,9 +195,9 @@ $("bulk-apply").addEventListener("click", () => {
     const p = parseLine(line);
     if (!p) continue;
     const r = addOrUpdate(p.name, p.delta);
-    const sign = p.delta >= 0 ? `+${p.delta}` : `${p.delta}`;
+    const sign = p.delta >= 0 ? `+${fmt(p.delta)}` : fmt(p.delta);
     const label = { new: "Nou", up: "Sumat", down: "Restat" }[r.kind];
-    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${r.before} → `}${r.item.qty}</li>`);
+    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${fmt(r.before)} → `}${fmt(r.item.qty)} u</li>`);
   }
   if (!out.length) {
     $("bulk-result").innerHTML = `<li><span class="tag err">Buit</span>Escriu un producte per línia.</li>`;
