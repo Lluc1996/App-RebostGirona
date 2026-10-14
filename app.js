@@ -170,13 +170,13 @@ $("edit-delete").addEventListener("click", () => {
   save();
 });
 
-// ── Llista massiva: "3 llet", "llet 3", "-2 ous", "ous x2", "pa" (= 1)
+// ── Llista massiva: "Llet 3u", "iogurts -2u" (també "llet 3", "3 llet", "pa" = 1)
 function parseLine(line) {
   const t = line.replace(/^[\s\-–•*·]+(?=\D)/, "").trim(); // treu vinyetes, però no el "-" d'un número
   if (!t) return null;
   let m = t.match(/^([+-]?\d+)\s*[x×]?\s+(.+)$/i);
   if (m) return { name: m[2], delta: Number(m[1]) };
-  m = t.match(/^(.+?)\s*[:x×]?\s*([+-]?\d+)$/i);
+  m = t.match(/^(.+?)\s*[:x×]?\s*([+-]?\d+)\s*(?:u|uds?|unitats?)?\.?$/i);
   if (m && m[1].trim()) return { name: m[1].replace(/[:\s]+$/, ""), delta: Number(m[2]) };
   return { name: t, delta: 1 };
 }

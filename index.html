@@ -42,9 +42,14 @@
     </section>
 
     <section>
-      <h2>Afegir una llista</h2>
-      <p class="hint">Un producte per línia. Si ja hi és, se suma (o es resta amb un "-"); si no hi és, s'afegeix.<br>Exemples: <code>3 llet</code> · <code>ous 12</code> · <code>-2 iogurts</code> · <code>pa</code> (= 1)</p>
-      <textarea id="bulk" rows="6" placeholder="2 llet&#10;ous 6&#10;-1 tomàquets&#10;pa"></textarea>
+      <h2>Afegir els productes en una llista</h2>
+      <ul class="hint steps">
+        <li>Un producte per línia.</li>
+        <li>Es suma o es resta si ja hi és.</li>
+        <li>Primer el producte i després les unitats: el número seguit de <b>u</b>.</li>
+      </ul>
+      <p class="hint">Ex. <code>Llet 3u</code> · <code>ous 12u</code> · <code>iogurts -2u</code></p>
+      <textarea id="bulk" rows="6" placeholder="Llet 3u&#10;ous 12u&#10;iogurts -2u"></textarea>
       <div class="row">
         <button id="bulk-apply" class="btn">Aplicar llista</button>
       </div>
