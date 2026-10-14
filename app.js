@@ -30,15 +30,34 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const byId = (id) => state.items.find((i) => i.id === id);
 const byName = (name) => state.items.find((i) => norm(i.name) === norm(name));
 // Quantitats amb decimals ("0,5" o "0.5"), arrodonides a centèsimes i mai negatives
-const toNum = (v) => Number(String(v).trim().replace(",", ".")) || 0;
-const clampQty = (n) => Math.max(0, Math.round(toNum(n) * 100) / 100);
+// Quantitats amb fraccions. S'entén: "1/4u", "1 1/4u", "1u 1/4u", "¼", "1¼u", "0,25u", "-1/2u", "3"
+const UNIT = /(?:unitats?|uds?|u)\.?/gi;
+const VULGAR = { "¼": "1/4", "½": "1/2", "¾": "3/4", "⅓": "1/3", "⅔": "2/3", "⅛": "1/8" };
+function parseQty(str) {
+  const t = String(str)
+    .replace(/[¼½¾⅓⅔⅛]/g, (c) => " " + VULGAR[c])
+    .replace(UNIT, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  let m = t.match(/^([+-]?)\s*(?:(\d+) )?(\d+)\s*\/\s*(\d+)$/);
+  if (m && Number(m[4])) return (m[1] === "-" ? -1 : 1) * ((Number(m[2]) || 0) + Number(m[3]) / Number(m[4]));
+  m = t.match(/^([+-]?)\s*(\d+(?:[.,]\d+)?)$/);
+  if (m) return (m[1] === "-" ? -1 : 1) * Number(m[2].replace(",", "."));
+  return NaN;
+}
+const toNum = (v) => (typeof v === "number" ? v : parseQty(v)) || 0;
+const clampQty = (n) => Math.max(0, Math.round(toNum(n) * 10000) / 10000);
 const fmt = (n) => n.toLocaleString("ca-ES", { maximumFractionDigits: 2 });
-// Per mostrar: mitges i quarts com a fracció (0,5 → ½, 1,5 → 1½), la resta amb coma
-const FRACTIONS = { 0.25: "¼", 0.5: "½", 0.75: "¾" };
+// Per mostrar: unitats senceres + fracció → "3u", "1/4u", "1u 1/4u". Si no és una fracció senzilla, amb coma.
 function fmtQty(n) {
-  const whole = Math.floor(n);
-  const frac = FRACTIONS[Math.round((n - whole) * 100) / 100];
-  return frac ? (whole ? whole : "") + frac : fmt(n);
+  const whole = Math.floor(n + 0.005);
+  const frac = n - whole;
+  if (Math.abs(frac) < 0.005) return `${whole}u`;
+  for (const d of [2, 3, 4, 8]) {
+    const num = Math.round(frac * d);
+    if (num > 0 && Math.abs(frac - num / d) < 0.005) return (whole ? `${whole}u ` : "") + `${num}/${d}u`;
+  }
+  return `${fmt(n)}u`;
 }
 const isPartial = (n) => n > 0 && n < 1;
 
@@ -75,10 +94,9 @@ function render() {
       </li>`).join("")
     : `<li class="empty-msg">${state.items.length ? "Cap producte coincideix amb la cerca." : "Encara no hi ha productes. Afegeix-ne un a sota o enganxa una llista."}</li>`;
 
-  const total = state.items.reduce((s, i) => s + i.qty, 0);
   const out = state.items.filter((i) => i.qty === 0).length;
   const low = state.items.filter((i) => isPartial(i.qty)).length;
-  $("global").innerHTML = `<strong>${state.items.length}</strong>productes · ${fmt(total)} unitats${low ? ` · ${low} a mitges` : ""}${out ? ` · ${out} esgotats` : ""}`;
+  $("global").innerHTML = `<strong>${state.items.length}</strong>productes${low ? ` · ${low} amb menys d'1u` : ""}${out ? ` · ${out} esgotats` : ""}`;
 }
 
 // ── Fotos: es redueixen a miniatura JPEG perquè hi càpiguen moltes al navegador
@@ -135,9 +153,9 @@ $("quick").addEventListener("submit", (e) => {
   e.preventDefault();
   const name = $("quick-name").value.trim();
   if (!name) return;
-  const r = addOrUpdate(name, clampQty($("quick-qty").value || 1));
+  const r = addOrUpdate(name, clampQty($("quick-qty").value.trim() || 1));
   $("quick-name").value = "";
-  $("quick-qty").value = 1;
+  $("quick-qty").value = "1u";
   $("search").value = "";
   save();
   if (r.kind !== "new") msg(`"${r.item.name}" ja hi era: ara n'hi ha ${fmtQty(r.item.qty)}.`);
@@ -147,7 +165,7 @@ $("quick").addEventListener("submit", (e) => {
 function openEdit(item) {
   editingId = item.id;
   $("edit-name").value = item.name;
-  $("edit-qty").value = fmt(item.qty);
+  $("edit-qty").value = fmtQty(item.qty);
   $("edit-nophoto").hidden = !item.photo;
   $("edit").showModal();
 }
@@ -184,19 +202,22 @@ $("edit-delete").addEventListener("click", () => {
 
 // ── Llista massiva: "(nom del producte) (unitats)u" → "pasta llaços 1u", "llet 0,5u", "iogurts -2u"
 // Si falta la "u" també s'entén ("llet 3", "3 llet"), i sense número compta com 1 ("pa").
-const NUM = "[+-]?\\d+(?:[.,]\\d+)?";
-const WITH_U = new RegExp(`^(.+?)\\s*(${NUM})\\s*(?:u|uds?|unitats?)\\.?$`, "i");
-const NUM_END = new RegExp(`^(.+?)\\s+(${NUM})$`);
-const NUM_START = new RegExp(`^(${NUM})\\s*(?:u|uds?|unitats?)?\\s+(.+)$`, "i");
+const U = "(?:unitats?|uds?|u)\\.?";
+const NUM = "\\d+(?:[.,]\\d+)?";
+// Quantitat al final: "1/4u", "1 1/4u", "1u 1/4u", "-1/2u", "0,5u", "3u", "3"
+const QTY = `[+-]?\\s*(?:\\d+\\s*(?:${U}\\s*|\\s+))?\\d+\\s*\\/\\s*\\d+\\s*(?:${U})?|[+-]?\\s*${NUM}\\s*(?:${U})?`;
+const QTY_END = new RegExp(`^(.+?)\\s*(${QTY})$`, "i");
+const NUM_START = new RegExp(`^([+-]?${NUM})\\s*(?:${U})?\\s+(.+)$`, "i");
 function parseLine(line) {
   const t = line
     .replace(/\([^)]*\)?/g, " ") // el que va entre parèntesis s'ignora
+    .replace(/[¼½¾⅓⅔⅛]/g, (c) => " " + VULGAR[c])
     .replace(/^[\s\-–•*·]+(?=\D)/, "") // treu vinyetes, però no el "-" d'un número
     .replace(/\s+/g, " ")
     .trim();
   if (!t) return null;
-  let m = t.match(WITH_U) || t.match(NUM_END);
-  if (m && m[1].trim()) return { name: m[1].replace(/[:\s]+$/, ""), delta: toNum(m[2]) };
+  let m = t.match(QTY_END);
+  if (m && m[1].trim() && /\D/.test(m[1])) return { name: m[1].replace(/[:\s]+$/, ""), delta: toNum(m[2]) };
   m = t.match(NUM_START);
   if (m) return { name: m[2], delta: toNum(m[1]) };
   return { name: t, delta: 1 };
@@ -210,7 +231,7 @@ $("bulk-apply").addEventListener("click", () => {
     const r = addOrUpdate(p.name, p.delta);
     const sign = p.delta >= 0 ? `+${fmtQty(p.delta)}` : `-${fmtQty(-p.delta)}`;
     const label = { new: "Nou", up: "Sumat", down: "Restat" }[r.kind];
-    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${fmtQty(r.before)} → `}${fmtQty(r.item.qty)} u</li>`);
+    out.push(`<li><span class="tag ${r.kind}">${label}</span><b>${esc(r.item.name)}</b> ${r.kind === "new" ? "" : `${sign} · ${fmtQty(r.before)} → `}${fmtQty(r.item.qty)}</li>`);
   }
   if (!out.length) {
     $("bulk-result").innerHTML = `<li><span class="tag err">Buit</span>Escriu un producte per línia.</li>`;
